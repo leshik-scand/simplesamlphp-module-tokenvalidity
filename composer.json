@@ -1,0 +1,20 @@
+{
+    "name": "leshik-scand/simplesamlphp-module-tokenvalidity",
+    "description": "Token validity filter.",
+    "keywords": [ "simplesamlphp", "validity", "sp", "module", "filter" ],
+    "type": "simplesamlphp-module",
+    "minimum-stability": "stable",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Maxim Leshik",
+            "email": "leshik@scand.com"
+        }
+    ],
+    "require": {
+        "simplesamlphp/composer-module-installer": "^1.1"
+    },
+    "require-dev": {
+        "simplesamlphp/simplesamlphp": "^1.18"
+    }
+}
