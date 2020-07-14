@@ -17,8 +17,6 @@ _config/config.php_
             'class' => 'tokenvalidity:Validation',
             'redirectUser' => true,
             'redirectUrl' => 'http://google.com',
-            'memcacheHost' => 'localhost',
-            'memcachePort' => 11211,
             'dateInterval' => 'PT5M',
         ],
         ...

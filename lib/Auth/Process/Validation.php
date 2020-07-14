@@ -6,6 +6,7 @@ use \DateInterval;
 use \DateTime;
 use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Error;
+use SimpleSAML\Memcache;
 use SimpleSAML\Utils\HTTP;
 
 /**
@@ -16,9 +17,7 @@ use SimpleSAML\Utils\HTTP;
  *     'class' => 'tokenvalidity:Validation',
  *     'redirectUser' => true,
  *     'redirectUrl' => 'http://test.com/',
- *     'dateInterval' => 'PT5M',
- *     'memcacheHost' => 'localhost',
- *     'memcachePort' => 11211,
+ *     'dateInterval' => 'PT5M'
  * ),
  * </code>
  *
@@ -30,10 +29,6 @@ class Validation extends ProcessingFilter
     private $redirectUser;
     /** @var string */
     private $redirectUrl;
-    /** @var string */
-    private $memcacheHost;
-    /** @var int */
-    private $memcachePort;
     /** @var DateInterval */
     private $dateInterval;
 
@@ -49,12 +44,6 @@ class Validation extends ProcessingFilter
         if (array_key_exists('redirectUrl', $config)) {
             $this->redirectUrl = $config['redirectUrl'];
         }
-        if (array_key_exists('memcacheHost', $config)) {
-            $this->memcacheHost = $config['memcacheHost'];
-        }
-        if (array_key_exists('memcachePort', $config)) {
-            $this->memcachePort = intval($config['memcachePort']);
-        }
         if (array_key_exists('dateInterval', $config)) {
             $this->dateInterval = new DateInterval($config['dateInterval']);
         }
@@ -68,19 +57,16 @@ class Validation extends ProcessingFilter
         $spState = $request['saml:sp:State'];
         $attributes = $request['Attributes'];
 
-        $memcache = new \Memcache();
-        $memcache->connect($this->memcacheHost, $this->memcachePort);
-
         $createTimestamp = $spState['saml:AuthnInstant'];
         $userEmail = $attributes['email'];
         $userHash = md5($userEmail . $createTimestamp);
 
         $expireTime = (new DateTime())->setTimestamp($createTimestamp)->add($this->dateInterval);
-        $isUsed = (bool)$memcache->get($userHash);
+        $isUsed = (bool)Memcache::get($userHash);
         if ($isUsed) {
             throw new Error\Exception("Assertion used by user.");
         } else {
-            $memcache->set($userHash, true);
+            Memcache::set($userHash, true);
         }
 
         if ($expireTime < (new DateTime())) {
