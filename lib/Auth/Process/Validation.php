@@ -7,7 +7,6 @@ use \DateTime;
 use SimpleSAML\Auth\ProcessingFilter;
 use SimpleSAML\Error;
 use SimpleSAML\Memcache;
-use SimpleSAML\Utils\HTTP;
 
 /**
  * Token validity filter.
@@ -25,10 +24,6 @@ use SimpleSAML\Utils\HTTP;
  */
 class Validation extends ProcessingFilter
 {
-    /** @var bool */
-    private $redirectUser;
-    /** @var string */
-    private $redirectUrl;
     /** @var DateInterval */
     private $dateInterval;
 
@@ -38,12 +33,6 @@ class Validation extends ProcessingFilter
 
         assert(is_array($config));
 
-        if (array_key_exists('redirectUser', $config)) {
-            $this->redirectUser = (bool)$config['redirectUser'];
-        }
-        if (array_key_exists('redirectUrl', $config)) {
-            $this->redirectUrl = $config['redirectUrl'];
-        }
         if (array_key_exists('dateInterval', $config)) {
             $this->dateInterval = new DateInterval($config['dateInterval']);
         }
@@ -58,7 +47,7 @@ class Validation extends ProcessingFilter
         $attributes = $request['Attributes'];
 
         $createTimestamp = $spState['saml:AuthnInstant'];
-        $userEmail = $attributes['email'];
+        $userEmail = $attributes['email'][0];
         $userHash = md5($userEmail . $createTimestamp);
 
         $expireTime = (new DateTime())->setTimestamp($createTimestamp)->add($this->dateInterval);
@@ -71,10 +60,6 @@ class Validation extends ProcessingFilter
 
         if ($expireTime < (new DateTime())) {
             throw new Error\Exception("Validation period has expired.");
-        }
-
-        if ($this->redirectUser) {
-            HTTP::redirectTrustedURL($this->redirectUrl);
         }
     }
 }
